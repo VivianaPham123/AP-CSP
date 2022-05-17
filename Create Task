@@ -1,0 +1,230 @@
+//Credits:
+  //The data and images were imported from the data set "Dogs" in Code.org: https://thedogapi.com/
+  //The six paw hearts on the homePage are obtained from: https://www.google.com/search?q=paw+heart+png&rlz=1C1CHBD_enUS727US727&sxsrf=APq-WBuDFAwalMk78lzJeJ0eyA4g20FIww:1649907054652&source=lnms&tbm=isch&sa=X&ved=2ahUKEwjtqZ7fzpL3AhWnJ0QIHckuAekQ_AUoAXoECAEQAw&biw=2560&bih=1329&dpr=1.5#imgrc=RL5Otd7qzjAb0M
+  //The heart counter image in the bottom left corner of the mainGamePage is obtained from: https://www.google.com/search?q=heart+png&rlz=1C1CHBD_enUS727US727&sxsrf=APq-WBs2uIdyFd-sy7BC8gkaMiaJYrvVpg:1649907030724&source=lnms&tbm=isch&sa=X&ved=2ahUKEwiN5enTzpL3AhV6KUQIHX-8CF0Q_AUoAXoECAEQAw&biw=2560&bih=1329&dpr=1.5#imgrc=ZM-5peHo54LaAM
+  //The blue sparkle effects on the mainGamePage is obtained from: https://www.google.com/search?q=blue+sparkles+png&rlz=1C1CHBD_enUS727US727&sxsrf=APq-WBu8Qe8NJkLvrHEFVucs1DcGb1NdNg:1649906941116&source=lnms&tbm=isch&sa=X&ved=2ahUKEwiH0IypzpL3AhXHDEQIHVwQCbAQ_AUoAXoECAEQAw&biw=2560&bih=1329&dpr=1.5#imgrc=PMw-XQhPboVlWM
+  //The heart effects on the mainGamePage is obtained from: https://www.google.com/search?q=hearts&rlz=1C1CHBD_enUS727US727&sxsrf=APq-WBvgVy4DGD4CJRvfFUpGbyawqul7Ow:1649906904994&source=lnms&tbm=isch&sa=X&sqi=2&ved=2ahUKEwjC-O-XzpL3AhVoGLkGHReoDLMQ_AUoAXoECAEQAw&biw=2560&bih=1329&dpr=1.5#imgrc=JvuylFPQWdafaM
+
+
+//Lists 
+var dogNameList = getColumn("Dogs", "Name");
+var dogTypeList = getColumn("Dogs", "Breed Group");
+var minWeightList = getColumn("Dogs", "Minimum Weight");
+var dogImageList = getColumn("Dogs", "Image");
+
+
+//Variables
+var dogType = "";                     //Herding, hound, mixed, non-sporting, sporting, terrier, toy, working
+var dogName = "";
+var dogSize = "";
+var dogImage = "";
+var filteredNameList = [];
+var filteredImageList = [];
+var filteredTypeList = [];
+var finalFilteredNameList = [];
+var finalFilteredImageList = [];
+var heartCounter = 0;
+var counter = 1;
+
+
+//Workspace
+
+//Home page
+
+//Clicking the "Customize" button gives a picture and the name of a dog based on the user input on desired type and size.
+onEvent("customizeButton", "click", function() {
+  dogName = "";
+  dogImage = "";
+  filteredNameList = [];
+  filteredImageList = [];
+  filteredTypeList = [];
+  finalFilteredNameList = [];
+  finalFilteredImageList = [];
+  dogType = getText("dogTypeInput");          //gets "type" input from the user: Herding, Hound, Mixed, Non-sporting, Sporting, Terrier, Toy, Working
+  dogSize = getText("sizeInput");             //gets "size" input from the user: Small, Big, Medium
+  findSize(dogSize);
+  customizeDog(dogType, filteredTypeList, filteredNameList, filteredImageList);
+  pickDog(finalFilteredNameList, finalFilteredImageList);
+});
+
+
+//Main game page
+
+//Clicking the "Done" button from the homePage changes the screen to the mainGamePage unless the user does not have a dog.
+onEvent("doneButton", "click", function () {
+  if((dogName == "") || (dogImage == "")) {
+    setText("errorText", "Please choose a valid combination.");
+  }
+  else {
+    setScreen("mainGamePage");
+    setImageURL("dogImageGame", dogImage);
+    setText("dogNameGame", dogName);
+    setText("heartCounter", heartCounter);
+    hideElement("petDogText");
+    hideElement("sparkles");
+    hideElement("hearts");
+    for(var i = 1; i <= 4; i++) {
+      hideElement("unclickable" + i);
+    }
+  }
+});
+
+//Clicking or "petting" the dog adds a heart to the counter.
+onEvent("dogImageGame", "click", function () {  
+  heartCounter = heartCounter + counter;
+  setText("heartCounter", heartCounter);      //outputs new heart count
+  setText("petDogText", "+" + counter);       //outputs text to show how much the counter increased
+  showElement("petDogText");
+  setTimeout(function() {                     //delay for the "+1", "+3", "+5", or "+7" text
+    hideElement("petDogText");
+  }, 200);
+});
+
+
+//Shop page
+
+//Clicking the "Shop" button on the mainGamePage switches the screen to the shopPage.
+onEvent("shopButton", "click", function() {
+  setScreen("shopPage");
+  hideElement("notEnoughHeartsText");
+});
+
+//Clicking on the "+2 hearts per pet" shop item checks to see if the user has enough hearts. If yes, 50 hearts is removed from the user's current heart balance and adds 2 hearts per click. If no, a message is displayed, saying "Sorry, you don't have enough hearts :("
+onEvent("plus2HeartsShopItem", "click", function () {
+  if(heartCounter >= 50) {
+    hideElement("notEnoughHeartsText");
+    setText("plus2HeartsShopItem", "Purchased!");
+    setProperty("plus2HeartsShopItem", "text-color", rgb(100, 200, 100));
+    counter = counter + 2;
+    heartCounter = heartCounter - 50;
+    showElement("unclickable1");
+  }
+  else {
+    showElement("notEnoughHeartsText");
+  }
+});
+
+//Clicking on the "+4 hearts per pet" shop item checks to see if the user has enough hearts. If yes, 100 hearts is removed from the user's current heart balance and adds 4 hearts per click. If no, a message is displayed, saying "Sorry, you don't have enough hearts :("
+onEvent("plus4HeartsShopItem", "click", function () {
+  if(heartCounter >= 100) {
+    hideElement("notEnoughHeartsText");
+    setText("plus4HeartsShopItem", "Purchased!");
+    setProperty("plus4HeartsShopItem", "text-color", rgb(100, 200, 100));
+    counter = counter + 4;
+    heartCounter = heartCounter - 100;
+    showElement("unclickable2");
+  }
+  else {
+    showElement("notEnoughHeartsText");
+  }
+});
+
+//Clicking on the "Sparkles" shop item checks to see if the user has enough hearts. If yes, 500 hearts is removed from the user's current heart balance and a sparkle effect is added to the user's dog. If no, a message is displayed, saying "Sorry, you don't have enough hearts :("
+onEvent("sparklesShopItem", "click", function() {
+  if(heartCounter >= 500) {
+    hideElement("notEnoughHeartsText");
+    setText("sparklesShopItem", "Purchased!");
+    setProperty("sparklesShopItem", "text-color", rgb(100, 200, 100));
+    showElement("sparkles");
+    heartCounter = heartCounter - 500;
+    showElement("unclickable3");
+  }
+  else {
+    showElement("notEnoughHeartsText");
+  }
+});
+
+//Clicking on the "Hearts" shop item checks to see if the user has enough hearts. If yes, 500 hearts is removed from the user's current heart balance and a heart effect is added to the user's dog. If no, a message is displayed, saying "Sorry, you don't have enough hearts :("
+onEvent("heartsShopItem", "click", function() {
+  if(heartCounter >= 500) {
+    hideElement("notEnoughHeartsText");
+    setText("heartsShopItem", "Purchased!");
+    setProperty("heartsShopItem", "text-color", rgb(100, 200, 100));
+    showElement("hearts");
+    heartCounter = heartCounter- 500;
+    showElement("unclickable4");
+  }
+  else {
+    showElement("notEnoughHeartsText");
+  }
+});
+
+//Clicking on the "Home" button returns the user to the "mainGamePage," updating the user's heart balance as necessary.
+onEvent("homeButton", "click", function() {
+  setScreen("mainGamePage");
+  setText("heartCounter", heartCounter);
+});
+
+
+//Functions
+
+//Finds the desired size of a dog based on the user's input of big, medium, or small.
+//size {string} - Desired size of the dog: big, medium, or small
+function findSize(size) {
+  if(size == "Small") {
+    for(var i = 0; i < minWeightList.length; i++) {
+      if(minWeightList[i] <= 21) {
+        appendItem(filteredNameList, dogNameList[i]);
+        appendItem(filteredImageList, dogImageList[i]);
+        appendItem(filteredTypeList, dogTypeList[i]);
+      }
+    }
+  }
+  else if(size == "Medium") {
+    for(var j = 0; j < minWeightList.length; j++) {
+      if(minWeightList[j] > 21 && minWeightList[j] <= 55) {
+        appendItem(filteredNameList, dogNameList[j]);
+        appendItem(filteredImageList, dogImageList[j]);
+        appendItem(filteredTypeList, dogTypeList[j]);
+      }
+    }
+  }
+  else {        //big
+    for(var x = 0; x < minWeightList.length; x++) {
+      if(minWeightList[x] > 55) {
+        appendItem(filteredNameList, dogNameList[x]);
+        appendItem(filteredImageList, dogImageList[x]);
+        appendItem(filteredTypeList, dogTypeList[x]);
+      }
+    }
+  }
+}
+
+//Finds the desired dog based on the type inputed by the user, with lists already filtered by the desired size.
+//type {string} - Desired type of dog that the user inputted
+//typeList {list} - List of the types of dogs, already filtered by the desired size
+//nameList {list} - List of the names of dogs, already filtered by the desired size
+//imageList {list} - List of the images of dogs, already filtered by the desired size
+function customizeDog(type, typeList, nameList, imageList) {
+  for(var i = 0; i < typeList.length; i++) {
+    if(type == typeList[i]) {
+      appendItem(finalFilteredNameList, nameList[i]);
+      appendItem(finalFilteredImageList, imageList[i]);
+    }
+  }
+}
+
+//Picks the desired dog after the lists have been filtered by the desired type and size. Sets the text and image of the final dog.
+//nameList {list} - List of the names of dogs, already filtered by the desired type and size
+//imageList {list} - List of the images of dogs, already filtered by the desired type and size
+function pickDog(nameList, imageList) {
+ if(nameList.length == 1) {
+   dogName = nameList[0];
+   dogImage = imageList[0];
+   setText("dogName", dogName);
+   setImageURL("dogImage", imageList[0]);
+ } 
+ else if(nameList.length > 1) {
+   var randomDog = randomNumber(0, nameList.length - 1);
+   dogName = nameList[randomDog];
+   dogImage = imageList[randomDog];
+   setText("dogName", dogName);
+   setImageURL("dogImage", dogImage);
+ }
+ else {
+   setText("dogName", "Not a valid combination.");
+   setImageURL("dogImage", "");
+ }
+}
+
+  
